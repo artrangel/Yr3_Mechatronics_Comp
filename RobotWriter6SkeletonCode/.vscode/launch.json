@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": true,
+      "cwd": "c:/Users/range/OneDrive - The University of Nottingham/University Work/24-25 3rd Year Mech/Computer Engineering and Mechatronics/RobotWriter_v6.0/RobotWriter6SkeletonCode",
+      "program": "c:/Users/range/OneDrive - The University of Nottingham/University Work/24-25 3rd Year Mech/Computer Engineering and Mechatronics/RobotWriter_v6.0/RobotWriter6SkeletonCode/build/Debug/outDebug",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
