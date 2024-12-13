@@ -5,8 +5,9 @@
 #include "rs232.h"
 #include "serial.h"
 
+//Defining the limits for the movements, buffer, and the font data
 #define MAX_FONT_DATA 128
-#define MAX_MOVEMENTS 20
+#define MAX_MOVEMENTS 100
 #define BUFFER_SIZE 100
 
 typedef struct {
@@ -23,7 +24,7 @@ typedef struct {
 
 // Global variables
 FontData font[MAX_FONT_DATA];
-int font_loaded = 0;
+
 
 // Function declarations
 void LoadFontData(const char *filename);
@@ -33,31 +34,33 @@ void SendCommands (char *buffer );
 
 int main() 
 {
+    //Initialising the required variables to run the software
     char font_file[] = "SingleStrokeFont.txt";
     char text_file[100];
     char text[1000];
     float height;
     char buffer[100];
 
-    // Load font data
+    // Loading the font data
     printf("Loading font data...\n");
     LoadFontData(font_file);
-    printf("Font data loaded successfully.\n");
 
-    // Get user input
+    // Get the user input for text file and desired height
     printf("Enter text file name: ");
     scanf("%s", text_file);
     printf("Enter height (4-10mm): ");
     scanf("%f", &height);
-    if (height < 4 || height > 10) {
-        printf("Invalid height. Please use values between 4 and 10mm.\n");
-        return 1;
+
+    //A while loop to repeatedly ask the user to input a height within the range of 4mm-10mm
+    while (height < 4 || height > 10) {
+        printf("Invalid height. Please use values between 4 and 10mm.\n Enter height again (4-10mm):");
+        scanf("%f", &height);
     }
 
-    // Read input text
+    // Reading the text file
     FILE *file = fopen(text_file, "r");
     if (!file) {
-        perror("Error opening text file");
+        perror("Error opening text file"); //Showing to the user that the text cannot be opened.
         return 1;
     }
     fread(text, sizeof(char), 1000, file);
@@ -80,37 +83,44 @@ int main()
     return 0;
 }
 
+//The function to load the font data file
 void LoadFontData(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
         perror("Error opening font file");
-        exit(1);
+        exit(1); //Terminating it unsuccessfully as the font file is not found in the file directory
     }
+    else {
+        printf("Font data loaded successfully.\n");
+            char line[100];
 
-    char line[100];
-    while (fgets(line, sizeof(line), file)) {
-        if (strncmp(line, "999", 3) == 0) {
-            int ascii, num_movements;
-            sscanf(line, "999 %d %d", &ascii, &num_movements);
-            font[ascii].ascii = ascii;
-            font[ascii].num_movements = num_movements;
+        while (fgets(line, sizeof(line), file)) {
+            if (strncmp(line, "999", 3) == 0) {
+                int ascii, num_movements;
+                sscanf(line, "999 %d %d", &ascii, &num_movements);
+                font[ascii].ascii = ascii;
+                font[ascii].num_movements = num_movements;
 
-            for (int i = 0; i < num_movements; i++) {
-                fgets(line, sizeof(line), file);
-                sscanf(line, "%d %d %d", &font[ascii].movements[i].x, 
-                                          &font[ascii].movements[i].y, 
-                                          &font[ascii].movements[i].pen);
+                for (int i = 0; i < num_movements; i++) {
+                    fgets(line, sizeof(line), file);
+                    sscanf(line, "%d %d %d", &font[ascii].movements[i].x, 
+                                            &font[ascii].movements[i].y, 
+                                            &font[ascii].movements[i].pen);
+                }
             }
         }
     }
+    
 
-    font_loaded = 1;
+
+
     fclose(file);
 }
 
+//This function adjusts the height, converts the Gcode and ensures that width of the texts being written is within 100mm limit
 void GenerateGCode(char *text, float height, char *buffer) {
     float scale = height / 18.0;    // Scale factor for font height
-    float x_offset = 0, y_offset = 0;
+    float x_offset = 0, y_offset = 0; //Initialising the x and y offset variables
     float max_width = 100.0;       // Maximum width of writing area
     int previous_pen_state = -1;   // Track previous pen state (-1 = uninitialized)
 
@@ -118,7 +128,7 @@ void GenerateGCode(char *text, float height, char *buffer) {
     SendCommands(buffer);
 
     for (const char *word_start = text; *word_start; ) {
-        // Calculate word width
+        // This calculates word width
         float word_width = 0;
         const char *p = word_start;
         while (*p && *p != ' ' && *p != '\n') {
@@ -139,7 +149,7 @@ void GenerateGCode(char *text, float height, char *buffer) {
         for (; *word_start && *word_start != ' ' && *word_start != '\n'; word_start++) {
             int ascii = (int)*word_start;
 
-            // Skip undefined characters
+            // Skip undefined characters that is defined or found within the font data file
             if (ascii < 0 || ascii >= MAX_FONT_DATA || font[ascii].num_movements == 0) {
                 continue;
             }
@@ -178,9 +188,13 @@ void GenerateGCode(char *text, float height, char *buffer) {
         sprintf(buffer, "S0\n");
         SendCommands(buffer);
     }
+
     sprintf(buffer, "G0 X0 Y0\n");
     SendCommands(buffer);
 }
+
+//This function was already been provided from the original skeleton code.
+//This sends the Gcode commands to the robot.
 void SendCommands (char *buffer )
 {
     // printf ("Buffer to send: %s", buffer); // For diagnostic purposes only, normally comment out
