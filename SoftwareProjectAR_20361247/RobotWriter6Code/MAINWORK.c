@@ -10,12 +10,14 @@
 #define MAX_MOVEMENTS 100
 #define BUFFER_SIZE 100
 
+//Created a structure just to store the data of when the robot should lift the pen and where to move next
 typedef struct {
     int x;
     int y;
     int pen;
 } Movement;
 
+//Created a structure to store the font data details and this also includes the Movement structure 
 typedef struct {
     int ascii;
     int num_movements;
@@ -63,7 +65,9 @@ int main()
         perror("Error opening text file"); //Showing to the user that the text cannot be opened.
         return 1;
     }
-    fread(text, sizeof(char), 1000, file);
+
+    // Read the text from the file into the buffer
+    fread(text, sizeof(char), 1000, file);  
     fclose(file);
 
 
@@ -85,22 +89,27 @@ int main()
 
 //The function to load the font data file
 void LoadFontData(const char *filename) {
+    // Open the font data file for reading
     FILE *file = fopen(filename, "r");
     if (!file) {
-        perror("Error opening font file");
-        exit(1); //Terminating it unsuccessfully as the font file is not found in the file directory
+        perror("Error opening font file"); // Display an error if the file cannot be opened
+        exit(1); // Exit the program if the file cannot be found
     }
     else {
-        printf("Font data loaded successfully.\n");
-            char line[100];
+        printf("Font data loaded successfully.\n");  // Notify the user that the font data is being loaded
+            char line[100]; // This is to store lines read from the file
 
+        // Using a while loop to read each line of the font file
         while (fgets(line, sizeof(line), file)) {
-            if (strncmp(line, "999", 3) == 0) {
-                int ascii, num_movements;
-                sscanf(line, "999 %d %d", &ascii, &num_movements);
-                font[ascii].ascii = ascii;
-                font[ascii].num_movements = num_movements;
 
+            // Check for the marker indicating the start of a character's font data which is '999' for the first interger
+            if (strncmp(line, "999", 3) == 0) {
+                int ascii, num_movements; // Variables to store ASCII value and movement count
+                sscanf(line, "999 %d %d", &ascii, &num_movements);
+                font[ascii].ascii = ascii; // Store the ASCII value
+                font[ascii].num_movements = num_movements; // Store the number of movements
+
+                // Using a for loop to read each movement for the character
                 for (int i = 0; i < num_movements; i++) {
                     fgets(line, sizeof(line), file);
                     sscanf(line, "%d %d %d", &font[ascii].movements[i].x, 
@@ -117,7 +126,8 @@ void LoadFontData(const char *filename) {
     fclose(file);
 }
 
-//This function adjusts the height, converts the Gcode and ensures that width of the texts being written is within 100mm limit
+//This function adjusts the height and converts the Gcode
+//This function also ensures that the width of the texts being written is within 100mm limit
 void GenerateGCode(char *text, float height, char *buffer) {
     float scale = height / 18.0;    // Scale factor for font height
     float x_offset = 0, y_offset = 0; //Initialising the x and y offset variables
@@ -139,17 +149,17 @@ void GenerateGCode(char *text, float height, char *buffer) {
             p++;
         }
 
-        // Check if the word fits in the remaining width
+        // Checks if the word fits in the remaining width
         if (x_offset + word_width > max_width) {
             y_offset -= height; // Move to the next line
             x_offset = 0;      // Reset horizontal position
         }
 
-        // Draw the word
+        // A for loop to drawing the word
         for (; *word_start && *word_start != ' ' && *word_start != '\n'; word_start++) {
             int ascii = (int)*word_start;
 
-            // Skip undefined characters that is defined or found within the font data file
+            // Skip undefined characters that is not found within the font data file
             if (ascii < 0 || ascii >= MAX_FONT_DATA || font[ascii].num_movements == 0) {
                 continue;
             }
