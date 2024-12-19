@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/range/Downloads/Year3_Mecha/Yr3_Mechatronics_Comp/RobotWriter_v6.0 (2)/RobotWriter6SkeletonCode",
-      "program": "c:/Users/range/Downloads/Year3_Mecha/Yr3_Mechatronics_Comp/RobotWriter_v6.0 (2)/RobotWriter6SkeletonCode/build/Debug/outDebug",
+      "cwd": "c:/Users/range/Downloads/Year3_Mecha/Yr3_Mechatronics_Comp/SoftwareProjectAR_20361247/RobotWriter6Code",
+      "program": "c:/Users/range/Downloads/Year3_Mecha/Yr3_Mechatronics_Comp/SoftwareProjectAR_20361247/RobotWriter6Code/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
